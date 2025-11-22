@@ -27,7 +27,7 @@ OCR TEXT:
 {ocr_text}
 """
     response = client.chat.completions.create(
-        model="llama3-8b-8192",   # Groq-hosted LLaMA
+        model="llama-3.1-8b-instant",   # Groq-hosted LLaMA
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt}

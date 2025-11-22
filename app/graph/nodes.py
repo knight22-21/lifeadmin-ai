@@ -8,7 +8,6 @@ from app.actions.sendgrid_actions import send_email_notification
 from app.actions.onesignal_actions import send_push_notification
 from app.actions.supabase_logging import log_to_supabase
 from app.integrations.todoist_client import TodoistClient
-from app.integrations.onesignal_client import OneSignalClient
 
 
 
@@ -75,24 +74,7 @@ def task_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["todoist_task"] = todoist_response
     return state
 
-onesignal = OneSignalClient()
-def notification_action_node(data):
-    task = data.get("parsed_task")
-    provider = task["provider"]
-    due_date = task["due_date"]
-    amount = task["amount"]
 
-    heading = f"{provider} Bill Reminder"
-    message = f"Your {provider} bill of {amount} is due on {due_date}."
-
-    response = onesignal.send_push(
-        heading=heading,
-        message=message,
-        external_id="user_1"   # single-user version of the system
-    )
-
-    data["push_notification"] = response
-    return data
 
 def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     parsed = state["parsed"]

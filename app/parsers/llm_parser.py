@@ -25,6 +25,13 @@ RULES:
 """
 
 def parse_ocr_with_llm(ocr_text: str) -> ParsedTask:
+    if isinstance(ocr_text, dict):
+        try:
+            extracted_text = ocr_text["ParsedResults"][0]["ParsedText"]
+        except (KeyError, IndexError):
+            raise ValueError("OCR response missing ParsedText")
+    else:
+        extracted_text = ocr_text
     prompt = f"""
 Extract structured information from the following OCR text and return JSON only.
 
@@ -50,7 +57,7 @@ OCR TEXT:
             due_date=data.get("due_date"),
             provider=data.get("provider"),
             reminder_days_before=data.get("reminder_days_before"),
-            raw_text=ocr_text
+            raw_text=extracted_text
         )
 
     except Exception as e:

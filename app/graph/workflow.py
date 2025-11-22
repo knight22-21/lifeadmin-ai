@@ -53,3 +53,21 @@ def build_graph():
     graph.add_edge("log", END)
 
     return graph.compile()
+
+
+
+# Add this missing run_workflow function
+def run_workflow(image_path: str):
+    # Build the graph
+    graph = build_graph()
+
+    # Initialize state dictionary with image path
+    state = {"image": image_path}
+
+    # Execute the workflow using invoke() (not run_graph or execute)
+    result = graph.invoke(state)  # This runs the graph
+
+    # Output the final state (you can also log it or use it further)
+    print("Workflow result:", result)
+
+    return result

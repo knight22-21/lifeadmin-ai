@@ -13,7 +13,6 @@ from app.graph.nodes import (
     log_node
 )
 
-
 def build_graph():
     graph = StateGraph(dict)
 
@@ -34,6 +33,7 @@ def build_graph():
     graph.add_edge("ocr", "parse")
     graph.add_edge("parse", "decision")
 
+    # Conditional routing
     graph.add_conditional_edges(
         "decision",
         lambda state: state["next_action"],
@@ -45,7 +45,7 @@ def build_graph():
         }
     )
 
-    # All action paths lead to logging
+    # All action paths → log → END
     graph.add_edge("task", "log")
     graph.add_edge("email", "log")
     graph.add_edge("push", "log")
@@ -55,19 +55,9 @@ def build_graph():
     return graph.compile()
 
 
-
-# Add this missing run_workflow function
 def run_workflow(image_path: str):
-    # Build the graph
     graph = build_graph()
-
-    # Initialize state dictionary with image path
     state = {"image": image_path}
-
-    # Execute the workflow using invoke() (not run_graph or execute)
-    result = graph.invoke(state)  # This runs the graph
-
-    # Output the final state (you can also log it or use it further)
+    result = graph.invoke(state)
     print("Workflow result:", result)
-
     return result

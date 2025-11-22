@@ -4,6 +4,9 @@ from app.ocr.ocr_space import extract_text_from_file
 from app.schemas.ocr import OCRResult
 from app.integrations.supabase_client import log_ocr_text
 import tempfile
+from app.parsers.llm_parser import parse_ocr_with_llm
+from app.schemas.task import ParsedTask
+
 
 app = FastAPI(title="LifeAdmin AI")
 
@@ -56,3 +59,12 @@ async def test_ocr(file: UploadFile = File(...)):
         confidence=confidence,
         full_response=result
     )
+
+
+@app.post("/parse-test", response_model=ParsedTask)
+async def test_parsing(ocr_text: str):
+    """
+    Test the LLM-based text parser using raw OCR text.
+    """
+    result = parse_ocr_with_llm(ocr_text)
+    return result

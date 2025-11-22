@@ -8,7 +8,8 @@ from app.actions.sendgrid_actions import send_email_notification
 from app.actions.onesignal_actions import send_push_notification
 from app.actions.supabase_logging import log_to_supabase
 from app.integrations.todoist_client import TodoistClient
-
+from app.integrations.sendgrid_client import SendGridClient
+from app.schemas.email import EmailPayload
 
 
 # ==================================================================
@@ -78,7 +79,21 @@ def task_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     parsed = state["parsed"]
-    send_email_notification(parsed.email, parsed.message)
+    
+    # Assuming parsed contains email and message details
+    payload = EmailPayload(
+        to=parsed.email,  # Assuming parsed object has an email field
+        subject="Notification from LifeAdmin",
+        body=parsed.message  # Assuming parsed object has a message field
+    )
+
+    # Initialize the SendGridClient and send the email
+    client = SendGridClient()
+    result = client.send_email(payload)
+    
+    # Store the result in the state (if needed for debugging or further use)
+    state["email_result"] = result
+    
     return state
 
 

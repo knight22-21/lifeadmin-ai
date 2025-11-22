@@ -5,4 +5,5 @@ class EmailPayload(BaseModel):
     to: EmailStr
     subject: str
     body: str
-    sender: Optional[EmailStr] = "no-reply@lifeadmin.ai"
+    sender: Optional[EmailStr] = "studyjamgenai33@gmail.com"
+

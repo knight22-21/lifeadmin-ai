@@ -1,13 +1,13 @@
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from app.core.config import SENDGRID_API_KEY
+from app.core.config import settings
 from app.schemas.email import EmailPayload
 
 class SendGridClient:
     def __init__(self):
-        if not SENDGRID_API_KEY:
+        if not settings.SENDGRID_API_KEY:
             raise ValueError("SENDGRID_API_KEY is missing in environment variables.")
-        self.client = SendGridAPIClient(SENDGRID_API_KEY)
+        self.client = SendGridAPIClient(settings.SENDGRID_API_KEY)
 
     def send_email(self, payload: EmailPayload):
         message = Mail(

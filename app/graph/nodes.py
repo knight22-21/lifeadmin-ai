@@ -63,15 +63,46 @@ def parse_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    print("\n==============================")
+    print("🧪 DEBUG — DECISION NODE INPUT")
+    print("Keys:", list(state.keys()))
+    print("State:", state)
+    print("==============================\n")
+
     state["stage"] = "decision"
+
+    if "parsed" not in state:
+        # Prevent crash if parsed data is missing
+        state["error"] = "❌ ERROR: parsed data missing — parse_node did not produce output."
+        state["output"] = None
+        return state
+
     parsed = state["parsed"]
 
     try:
-        if parsed.task_type in ["invoice", "bill", "receipt"]:
+        # Default action is "NONE"
+        next_action = "NONE"
+
+        # Check task type and decide next action
+        if parsed.task_type in ["invoice", "bill"]:
+            next_action = "TASK"  # Todoist task creation
+
+        elif parsed.task_type == "notification":
+            # Subscription reminder or similar, trigger email
+            if parsed.reminder_days_before is not None:
+                next_action = "EMAIL"  # Send email reminder
+        
+        elif parsed.task_type in ["subscription_screenshot"]:
+            # Handle subscription screenshots
             next_action = "TASK"
-        else:
+            if parsed.reminder_days_before is not None:
+                next_action = "EMAIL"  # Email reminder if due date or reminder configured
+
+        # For receipts, we just log, no task or email
+        if parsed.task_type == "receipt":
             next_action = "NONE"
 
+        # Log the next action decision
         state["next_action"] = next_action
         state["output"] = {"next_action": next_action}
 
@@ -79,6 +110,8 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
         state["error"] = str(e)
 
     return state
+
+
 
 
 todoist = TodoistClient()
@@ -151,12 +184,22 @@ def push_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def log_node(state: Dict[str, Any]) -> Dict[str, Any]:
+    # Update stage so final workflow result is accurate
+    state["stage"] = "log"
+
+    # Build log entry using the *previous* stage data (before log node)
     log_entry = LogEntry(
-        stage=state.get("stage", "unknown"),
+        stage=state.get("stage", "log"),
         input_data=state.get("input"),
         output_data=state.get("output"),
         error=state.get("error"),
     )
 
+    # Send record to Supabase
     SupabaseLogger.log(log_entry)
-    return {"logged": True}
+
+    # Mark state as logged
+    state["logged"] = True
+
+    return state
+

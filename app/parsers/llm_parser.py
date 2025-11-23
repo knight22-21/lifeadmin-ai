@@ -5,6 +5,7 @@ import json
 
 client = Groq(api_key=settings.GROQ_API_KEY)
 
+# SYSTEM PROMPT: Update to include more task types like `notification`, `subscription_screenshot`, etc.
 SYSTEM_PROMPT = """
 You are LifeAdmin AI, a document understanding and automation assistant.
 Your job is to extract task-related information from noisy OCR text.
@@ -18,10 +19,12 @@ Your output MUST be valid JSON with EXACTLY these keys:
 
 RULES:
 1. "task_type" MUST ALWAYS be a non-null string.
-2. Allowed values for "task_type": "invoice", "receipt", "bill", "other".
+2. Allowed values for "task_type": "invoice", "receipt", "bill", "notification", "subscription_screenshot", "other".
 3. If you are unsure, set "task_type" = "other". NEVER return null for task_type.
-4. All other fields may be null if missing or unclear.
-5. Return only the JSON. No extra text.
+4. "notification" should be used for tasks that require sending an email notification (e.g., subscription reminder).
+5. "subscription_screenshot" should be used for tasks related to screenshots of subscriptions that may require due date tracking or reminders.
+6. All other fields may be null if missing or unclear.
+7. Return only the JSON. No extra text.
 """
 
 def parse_ocr_with_llm(ocr_text: str) -> ParsedTask:
@@ -32,12 +35,15 @@ def parse_ocr_with_llm(ocr_text: str) -> ParsedTask:
             raise ValueError("OCR response missing ParsedText")
     else:
         extracted_text = ocr_text
+    
+    # Constructing the prompt for the model
     prompt = f"""
 Extract structured information from the following OCR text and return JSON only.
 
 OCR TEXT:
 {ocr_text}
 """
+    
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
@@ -48,11 +54,17 @@ OCR TEXT:
     )
 
     try:
+        # Parse the response
         content = response.choices[0].message.content.strip()
         data = json.loads(content)
 
+        # Ensure that the task_type is one of the valid options (invoice, receipt, etc.)
+        if data.get("task_type") not in ["invoice", "receipt", "bill", "notification", "subscription_screenshot", "other"]:
+            data["task_type"] = "other"  # Default to "other" if unrecognized task type
+
+        # Return the structured result
         return ParsedTask(
-            task_type=data.get("task_type"),  # now guaranteed non-null
+            task_type=data.get("task_type"),  # Now guarantees a non-null value and valid task type
             amount=data.get("amount"),
             due_date=data.get("due_date"),
             provider=data.get("provider"),

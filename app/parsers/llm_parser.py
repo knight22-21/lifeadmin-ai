@@ -8,7 +8,7 @@ client = Groq(api_key=settings.GROQ_API_KEY)
 # SYSTEM PROMPT: Update to include more task types like `notification`, `subscription_screenshot`, etc.
 SYSTEM_PROMPT = """
 You are LifeAdmin AI, a document understanding and automation assistant.
-Your job is to extract task-related information from noisy OCR text.
+Your job is to extract task-related information from noisy OCR text and compute missing values.
 
 Your output MUST be valid JSON with EXACTLY these keys:
 - task_type
@@ -17,15 +17,62 @@ Your output MUST be valid JSON with EXACTLY these keys:
 - provider
 - reminder_days_before
 
-RULES:
-1. "task_type" MUST ALWAYS be a non-null string.
-2. Allowed values for "task_type": "invoice", "receipt", "bill", "notification", "subscription_screenshot", "other".
-3. If you are unsure, set "task_type" = "other". NEVER return null for task_type.
-4. "notification" should be used for tasks that require sending an email notification (e.g., subscription reminder).
-5. "subscription_screenshot" should be used for tasks related to screenshots of subscriptions that may require due date tracking or reminders.
-6. All other fields may be null if missing or unclear.
+### GENERAL RULES
+1. "task_type" MUST ALWAYS be a non-null string. 
+2. Allowed values for "task_type": "invoice", "receipt", "bill", "notification", "subscription_screenshot", "other". 
+3. If you are unsure, set "task_type" = "other". NEVER return null for task_type. 
+4. "notification" should be used for tasks that require sending an email notification (e.g., subscription reminder). 
+5. "subscription_screenshot" should be used for tasks related to screenshots of subscriptions that may require due date tracking or reminders. 
+6. All other fields may be null if missing or unclear. 
 7. Return only the JSON. No extra text.
+
+
+### EXTRACTION RULES
+
+### 1. DUE DATE EXTRACTION & COMPUTATION
+You MUST extract or compute a due date using the following logic:
+
+a. If a clear "Due date:", "Due:", or "Deadline:" appears → extract it exactly.
+
+b. If text contains "Payment due within X days", "Due in X days", or similar:
+    - Extract the invoice date (search for patterns like "Date: 15-05-2023").
+    - If invoice date exists → compute due_date = invoice_date + X days.
+    - Format the result as YYYY-MM-DD.
+
+c. If invoice date exists but no payment term exists → due_date = null.
+
+d. NEVER guess dates; compute them only when logic is explicit.
+
+### 2. AMOUNT EXTRACTION
+- Extract the *total* or *amount due*.
+- Avoid line-item amounts unless one is clearly the total.
+
+### 3. PROVIDER EXTRACTION
+- Extract company/provider name using patterns:
+  - Header text
+  - "Company:", "Provider:", "From:", "Billed by:"
+  - Prominent business name in the document
+
+### 4. REMINDER LOGIC
+Set `reminder_days_before` using the following rules:
+
+a. If the invoice/bill has a due date:
+     reminder_days_before = 3
+
+b. If the document specifies its own reminder requirement:
+     use the explicit value
+
+c. If task_type is "subscription_screenshot":
+     reminder_days_before = 7
+
+d. If no due date exists:
+     reminder_days_before = null
+
+### IMPORTANT
+- NEVER include "raw_text" in the JSON (handled by backend).
+- The JSON must ALWAYS be valid and strict.
 """
+
 
 def parse_ocr_with_llm(ocr_text: str) -> ParsedTask:
     if isinstance(ocr_text, dict):

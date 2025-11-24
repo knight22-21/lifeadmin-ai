@@ -10,20 +10,39 @@ from app.integrations.todoist_client import TodoistClient
 from app.integrations.sendgrid_client import SendGridClient
 from app.schemas.email import EmailPayload
 
-# NEW logging imports
+# Logging imports
 from app.integrations.supabase_logger import SupabaseLogger
 from app.schemas.log import LogEntry
 
 
-# ==================================================================
-# NODES with STAGE TAGS + INPUT/OUTPUT tracking
-# ==================================================================
+# ==============================================================
+# Helper: Log state to Supabase
+# ==============================================================
+
+def log_stage(state: Dict[str, Any]):
+    """Helper to log any pipeline stage to Supabase."""
+    entry = LogEntry(
+        stage=state.get("stage"),
+        input_data=state.get("input"),
+        output_data=state.get("output"),
+        error=state.get("error"),
+    )
+    SupabaseLogger.log(entry)
+
+
+
+# ==============================================================
+# NODES WITH BUILT-IN LOGGING
+# ==============================================================
 
 def input_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "input"
     state["input"] = {"image": state.get("image")}
     state["output"] = {"received": True}
+
+    log_stage(state)
     return state
+
 
 
 def ocr_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -44,7 +63,9 @@ def ocr_node(state: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
+
 
 
 def parse_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -59,7 +80,9 @@ def parse_node(state: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
+
 
 
 def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -72,45 +95,39 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "decision"
 
     if "parsed" not in state:
-        # Prevent crash if parsed data is missing
         state["error"] = "❌ ERROR: parsed data missing — parse_node did not produce output."
         state["output"] = None
+        log_stage(state)
         return state
 
     parsed = state["parsed"]
 
     try:
-        # Default action is "NONE"
         next_action = "NONE"
 
-        # Check task type and decide next action
         if parsed.task_type in ["invoice", "bill"]:
-            next_action = "TASK"  # Todoist task creation
+            next_action = "TASK"
 
         elif parsed.task_type == "notification":
-            # Subscription reminder or similar, trigger email
-            if parsed.reminder_days_before is not None:
-                next_action = "EMAIL"  # Send email reminder
-        
-        elif parsed.task_type in ["subscription_screenshot"]:
-            # Handle subscription screenshots
-            next_action = "TASK"
-            if parsed.reminder_days_before is not None:
-                next_action = "EMAIL"  # Email reminder if due date or reminder configured
+            if parsed.reminder_days_before:
+                next_action = "EMAIL"
 
-        # For receipts, we just log, no task or email
+        elif parsed.task_type == "subscription_screenshot":
+            next_action = "TASK"
+            if parsed.reminder_days_before:
+                next_action = "EMAIL"
+
         if parsed.task_type == "receipt":
             next_action = "NONE"
 
-        # Log the next action decision
         state["next_action"] = next_action
         state["output"] = {"next_action": next_action}
 
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
-
 
 
 
@@ -143,6 +160,7 @@ def task_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
 
 
@@ -167,7 +185,9 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
+
 
 
 def push_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -177,17 +197,22 @@ def push_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     try:
         send_push_notification(parsed.title, parsed.message)
         state["output"] = {"push_sent": True}
+
     except Exception as e:
         state["error"] = str(e)
 
+    log_stage(state)
     return state
 
 
+
+# ==============================================================
+# FINAL LOG NODE — unchanged
+# ==============================================================
+
 def log_node(state: Dict[str, Any]) -> Dict[str, Any]:
-    # Update stage so final workflow result is accurate
     state["stage"] = "log"
 
-    # Build log entry using the *previous* stage data (before log node)
     log_entry = LogEntry(
         stage=state.get("stage", "log"),
         input_data=state.get("input"),
@@ -195,11 +220,7 @@ def log_node(state: Dict[str, Any]) -> Dict[str, Any]:
         error=state.get("error"),
     )
 
-    # Send record to Supabase
     SupabaseLogger.log(log_entry)
-
-    # Mark state as logged
     state["logged"] = True
 
     return state
-

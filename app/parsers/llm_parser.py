@@ -19,13 +19,17 @@ Your output MUST be valid JSON with EXACTLY these keys:
 
 ### GENERAL RULES
 1. "task_type" MUST ALWAYS be a non-null string. 
-2. Allowed values for "task_type": "invoice", "receipt", "bill", "notification", "subscription_screenshot", "other". 
+2. Allowed values for "task_type": "invoice", "receipt", "bill", "subscription", "other". 
 3. If you are unsure, set "task_type" = "other". NEVER return null for task_type. 
-4. "notification" should be used for tasks that require sending an email notification (e.g., subscription reminder). 
-5. "subscription_screenshot" should be used for tasks related to screenshots of subscriptions that may require due date tracking or reminders. 
-6. All other fields may be null if missing or unclear. 
-7. Return only the JSON. No extra text.
-
+4. "subscription" should be used for tasks related to images of subscriptions that may require due date tracking or reminders. 
+5. All other fields may be null if missing or unclear. 
+6. Return only the JSON. No extra text.
+7. Classify task_type as:
+   - "invoice" for formal payment requests with totals/due dates,
+   - "receipt" for proof-of-payment documents already paid,
+   - "bill" for utility/recurring service charges with a due date,
+   - "subscription" for recurring membership/plan/renewal documents,
+   - otherwise "other".
 
 ### EXTRACTION RULES
 
@@ -62,7 +66,7 @@ a. If the invoice/bill has a due date:
 b. If the document specifies its own reminder requirement:
      use the explicit value
 
-c. If task_type is "subscription_screenshot":
+c. If task_type is "subscription":
      reminder_days_before = 7
 
 d. If no due date exists:
@@ -106,7 +110,7 @@ OCR TEXT:
         data = json.loads(content)
 
         # Ensure that the task_type is one of the valid options (invoice, receipt, etc.)
-        if data.get("task_type") not in ["invoice", "receipt", "bill", "notification", "subscription_screenshot", "other"]:
+        if data.get("task_type") not in ["invoice", "receipt", "bill", "subscription", "other"]:
             data["task_type"] = "other"  # Default to "other" if unrecognized task type
 
         # Return the structured result

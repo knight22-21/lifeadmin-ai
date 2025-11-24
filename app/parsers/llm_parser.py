@@ -60,14 +60,14 @@ d. NEVER guess dates; compute them only when logic is explicit.
 ### 4. REMINDER LOGIC
 Set `reminder_days_before` using the following rules:
 
-a. If the invoice/bill has a due date:
+a. If the invoice/bill has a due date(not subscription):
      reminder_days_before = 3
 
 b. If the document specifies its own reminder requirement:
      use the explicit value
 
-c. If task_type is "subscription":
-     reminder_days_before = 7
+c. If task_type is "subscription" and no reminder present:
+     reminder_days_before = null
 
 d. If no due date exists:
      reminder_days_before = null

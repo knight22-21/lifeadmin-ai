@@ -113,8 +113,8 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
             next_action = "TASK"
 
         # Set next_action for subscription_screenshot with reminder_days_before
-        if parsed.task_type == "subscription" and parsed.reminder_days_before:
-            next_action = "EMAIL"
+        #if parsed.task_type == "subscription" and parsed.reminder_days_before:
+         #   next_action = "EMAIL"
 
         if parsed.task_type == "receipt":
             next_action = "NONE"

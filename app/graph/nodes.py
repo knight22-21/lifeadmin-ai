@@ -105,17 +105,20 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
     try:
         next_action = "NONE"
 
+        # Decision based on task_type
         if parsed.task_type in ["invoice", "bill"]:
             next_action = "TASK"
-
-        elif parsed.task_type == "notification":
-            if parsed.reminder_days_before:
+            
+        elif parsed.task_type == "notification": 
+            if parsed.reminder_days_before: 
                 next_action = "EMAIL"
-
+        
         elif parsed.task_type == "subscription_screenshot":
             next_action = "TASK"
-            if parsed.reminder_days_before:
-                next_action = "EMAIL"
+
+        # Set next_action for subscription_screenshot with reminder_days_before
+        if parsed.task_type == "subscription_screenshot" and parsed.reminder_days_before:
+            next_action = "EMAIL"
 
         if parsed.task_type == "receipt":
             next_action = "NONE"
@@ -128,6 +131,7 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     log_stage(state)
     return state
+
 
 
 
@@ -170,10 +174,14 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     parsed = state["parsed"]
 
     try:
+        # Default email if not provided
+        if not parsed.email:
+            parsed.email = "americaitalybelgium111@gmail.com"
+
         payload = EmailPayload(
             to=parsed.email,
             subject="Notification from LifeAdmin",
-            body=parsed.message
+            body="Your notification message."
         )
 
         client = SendGridClient()
@@ -192,17 +200,11 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 def push_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "push_action"
-    parsed = state["parsed"]
-
-    try:
-        send_push_notification(parsed.title, parsed.message)
-        state["output"] = {"push_sent": True}
-
-    except Exception as e:
-        state["error"] = str(e)
-
+    # Push notifications are disabled, so just log and continue
+    state["output"] = {"push_sent": False, "message": "Push notifications disabled"}
     log_stage(state)
     return state
+
 
 
 

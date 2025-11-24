@@ -33,7 +33,7 @@ def build_graph():
     graph.add_edge("ocr", "parse")
     graph.add_edge("parse", "decision")
 
-    # Conditional routing
+    # Conditional routing based on task type
     graph.add_conditional_edges(
         "decision",
         lambda state: state["next_action"],
@@ -45,14 +45,23 @@ def build_graph():
         }
     )
 
+    # After task: Decide whether to go to email or log
+    graph.add_conditional_edges(
+        "task",
+        lambda state: "EMAIL" if state.get("parsed") and state["parsed"].reminder_days_before else "LOG",
+        {
+            "EMAIL": "email",
+            "LOG": "log"
+        }
+    )
+
     # All action paths → log → END
-    graph.add_edge("task", "log")
     graph.add_edge("email", "log")
     graph.add_edge("push", "log")
-
     graph.add_edge("log", END)
 
     return graph.compile()
+
 
 
 def run_workflow(image_path: str):

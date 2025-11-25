@@ -26,7 +26,7 @@ Your output MUST be valid JSON with EXACTLY these keys:
 6. Return only the JSON. No extra text.
 7. Classify task_type as:
    - "invoice" for formal payment requests with totals/due dates,
-   - "receipt" for proof-of-payment documents already paid,
+   - "receipt" for proof-of-payment documents already paid with amounts and items,
    - "bill" for utility/recurring service charges with a due date,
    - "subscription" for recurring membership/plan/renewal documents,
    - otherwise "other".

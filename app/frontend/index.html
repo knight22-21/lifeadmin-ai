@@ -1,21 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>LifeAdmin AI Demo</title>
+    <meta charset="UTF-8">
+    <title>LifeAdmin AI</title>
     <link rel="stylesheet" href="/static/styles.css" />
 </head>
 
 <body>
-    <div class="container">
-        <h1>LifeAdmin AI</h1>
-        <p>Upload a document — I'll extract tasks & reminders automatically.</p>
 
-        <input type="file" id="file-input" />
-        <button id="upload-btn">Process</button>
+<div class="container">
 
-        <div id="response-box"></div>
+    <h1>LifeAdmin AI</h1>
+    <p class="subtitle">Upload bills, receipts or documents — AI will extract tasks, reminders, subscriptions, and more.</p>
+
+    <!-- Upload Card -->
+    <div class="card upload-card">
+        <input type="file" id="file-input">
+        <button id="upload-btn">Process Document</button>
     </div>
 
-    <script src="/static/script.js"></script>
+    <!-- Loading Spinner -->
+    <div id="loader" class="loader hidden">Processing…</div>
+
+    <!-- Results -->
+    <div id="result-container" class="hidden">
+
+        
+
+        <h2>Parsed Task Summary</h2>
+        <div id="task-card" class="card result-card"></div>
+
+        <h2>OCR Text</h2>
+        <pre id="ocr-text"></pre>
+
+        <h2>JSON (Raw Debug Output)</h2>
+        <pre id="raw-json"></pre>
+
+        <!-- Actions Performed -->
+        <h2>Actions Performed</h2>
+        <div id="actions-card" class="card result-card"></div>
+
+    </div>
+
+</div>
+
+<script src="/static/script.js"></script>
 </body>
 </html>

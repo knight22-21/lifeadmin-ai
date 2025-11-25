@@ -56,23 +56,23 @@ document.getElementById("upload-btn").onclick = async () => {
 
         // Check for Email result
         if (email?.status_code === 202) {
-            actionsHTML += "✅ Email notification sent<br>";
+            actionsHTML += "Email notification sent<br>";
         } else if (email) {
-            actionsHTML += "❌ Email failed or skipped<br>";
+            actionsHTML += "Email failed or skipped<br>";
         }
 
         // Check for Todoist task result
         if (todoist?.url) {
-            actionsHTML += `✅ Todoist task created: <a href="${todoist.url}" target="_blank">View Task</a><br>`;
+            actionsHTML += `Todoist task created: <a href="${todoist.url}" target="_blank">View Task</a><br>`;
         } else if (todoist) {
-            actionsHTML += "❌ Todoist task NOT created<br>";
+            actionsHTML += "Todoist task NOT created<br>";
         }
 
         // Logging status
         if (logged) {
-            actionsHTML += "✅ Logged to Supabase<br>";
+            actionsHTML += "Logged to Supabase<br>";
         } else if (json?.result?.logged === false) {
-            actionsHTML += "❌ Logging failed<br>";
+            actionsHTML += "Logging failed<br>";
         }
 
         actionsCard.innerHTML = actionsHTML;

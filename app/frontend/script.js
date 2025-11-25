@@ -45,7 +45,7 @@ document.getElementById("upload-btn").onclick = async () => {
 
         // Logging status
         if (logged) {
-            actionsHTML += "Logged to Supabase<br>";
+            actionsHTML += "Logged to Database<br>";
         } else if (json?.result?.logged === false) {
             actionsHTML += "Logging failed<br>";
         }

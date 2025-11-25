@@ -20,31 +20,6 @@ document.getElementById("upload-btn").onclick = async () => {
         document.getElementById("loader").classList.add("hidden");
         document.getElementById("result-container").classList.remove("hidden");
 
-        // Fill task card
-        const parsed = json?.result?.parsed;
-        const taskCard = document.getElementById("task-card");
-
-        if (parsed) {
-            taskCard.innerHTML = `
-                <strong>Task Type:</strong> ${parsed.task_type}<br>
-                <strong>Provider:</strong> ${parsed.provider}<br>
-                <strong>Amount:</strong> ${parsed.amount}<br>
-                <strong>Due Date:</strong> ${parsed.due_date}<br>
-                <strong>Reminder:</strong> ${parsed.reminder_days_before} days before<br>
-                <strong>Email:</strong> ${parsed.email}
-            `;
-        } else {
-            taskCard.innerHTML = "<i>No structured task data detected.</i>";
-        }
-
-        // OCR text
-        document.getElementById("ocr-text").innerText =
-            json?.result?.ocr_text || "No OCR text.";
-
-        // Debug JSON
-        document.getElementById("raw-json").innerText =
-            JSON.stringify(json, null, 2);
-
         // ACTIONS PERFORMED SUMMARY
         const actionsCard = document.getElementById("actions-card");
 

@@ -1,35 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LifeAdmin AI</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body>
 
 <div class="container">
-
     <h1>LifeAdmin AI</h1>
-    <p class="subtitle">Upload bills, receipts or documents — AI will extract tasks, reminders, subscriptions, and more.</p>
+    <p class="subtitle">Upload bills, receipts or documents — AI extracts tasks, reminders, subscriptions & more.</p>
 
     <!-- Upload Card -->
-    <div class="card upload-card">
-        <input type="file" id="file-input">
-        <button id="upload-btn">Process Document</button>
+    <div class="card upload-card" id="upload-area">
+        <p class="upload-text">Click or drag a file to upload</p>
+        <input type="file" id="file-input" />
+        <button id="upload-btn" class="btn-primary">Process Document</button>
     </div>
 
     <!-- Loading Spinner -->
-    <div id="loader" class="loader hidden">Processing…</div>
+    <div id="loader" class="loader hidden">
+        <div class="spinner"></div>
+        <span>Processing...</span>
+    </div>
 
     <!-- Results -->
     <div id="result-container" class="hidden">
-        <!-- Actions Performed -->
         <h2>Actions Performed</h2>
         <div id="actions-card" class="card result-card"></div>
-
     </div>
 
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
 </div>
 
 <script src="/static/script.js"></script>

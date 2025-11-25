@@ -1,67 +1,154 @@
+/* -------- GLOBAL -------- */
 body {
-    font-family: Inter, Arial, sans-serif;
-    background: #f6f8fa;
+    font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 40px;
+    background: radial-gradient(circle at top, #1e1e2f, #0b0b12);
+    color: #e0e0ff;
+    display: flex;
+    justify-content: center;
 }
 
 .container {
     max-width: 700px;
-    margin: auto;
+    width: 100%;
+    text-align: center;
 }
 
 h1 {
     margin-bottom: 5px;
+    font-size: 36px;
+    font-weight: 700;
 }
 
 .subtitle {
-    color: #555;
+    color: #9ca3af;
     margin-bottom: 25px;
 }
 
+/* -------- GLASS CARD -------- */
 .card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 25px;
     margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
-button {
+/* -------- UPLOAD UI -------- */
+.upload-card {
+    padding: 40px 20px;
+    border: 2px dashed rgba(255,255,255,0.18);
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.upload-card:hover {
+    background: rgba(255,255,255,0.08);
+    transform: scale(1.02);
+}
+
+.upload-text {
+    color: #c7c8ff;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+#file-input {
     width: 100%;
     padding: 12px;
-    background: #4f46e5;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.12);
+    border: none;
+    margin-bottom: 15px;
+    color: #dfe3ff;
+}
+
+/* -------- BUTTONS -------- */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
     color: white;
     border: none;
-    border-radius: 8px;
-    margin-top: 15px;
+    font-size: 16px;
     cursor: pointer;
-    font-size: 16px;
+    transition: 0.25s;
 }
 
-button:hover {
-    background: #4338ca;
+.btn-primary:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
 }
 
-#loader {
-    text-align: center;
-    font-size: 18px;
-    padding: 20px;
+/* -------- LOADER -------- */
+.loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 25px 0;
 }
 
-.hidden {
-    display: none;
+.spinner {
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top: 4px solid #6366f1;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.hidden { display: none; }
+
+/* -------- RESULTS -------- */
 .result-card {
-    font-size: 16px;
-    line-height: 1.5;
+    text-align: left;
+    font-size: 15px;
+    color: #e5e5ff;
+    line-height: 1.7;
 }
 
-pre {
-    background: #eef2ff;
-    padding: 15px;
-    border-radius: 8px;
-    overflow-x: auto;
+/* -------- TOASTS -------- */
+#toast-container {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
 }
 
+.toast {
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-top: 10px;
+    color: white;
+    font-size: 15px;
+    backdrop-filter: blur(12px);
+    animation: fadeInOut 4s ease forwards;
+}
+
+.toast.success {
+    background: rgba(34,197,94,0.3);
+    border-left: 4px solid #22c55e;
+}
+
+.toast.error {
+    background: rgba(239,68,68,0.3);
+    border-left: 4px solid #ef4444;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(20px);}
+    15% { opacity: 1; transform: translateY(0);}
+    85% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(20px);}
+}

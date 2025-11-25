@@ -9,6 +9,8 @@ from app.actions.onesignal_actions import send_push_notification
 from app.integrations.todoist_client import TodoistClient
 from app.integrations.sendgrid_client import SendGridClient
 from app.schemas.email import EmailPayload
+from app.parsers.groq_generate import generate_email_with_groq
+
 
 # Logging imports
 from app.integrations.supabase_logger import SupabaseLogger
@@ -174,12 +176,28 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
         if not parsed.email:
             parsed.email = "americaitalybelgium111@gmail.com"
 
+        # Build context from the entire state
+        context = {
+            "ocr_text": state.get("ocr_text"),
+            "parsed": parsed.dict(),
+            "previous_state": {k: v for k, v in state.items() if k not in ["ocr_text", "parsed"]}
+        }
+
+        # Generate email content using Groq LLM (get subject and body in JSON)
+        email_content = generate_email_with_groq(context)
+
+        # Extract subject and body
+        subject = email_content.get("subject", "No Subject")
+        body = email_content.get("body", "There was an issue generating the body.")
+
+        # Construct the email payload
         payload = EmailPayload(
             to=parsed.email,
-            subject="Notification from LifeAdmin",
-            body="Your notification message."
+            subject=subject,
+            body=body
         )
 
+        # Send email via SendGrid
         client = SendGridClient()
         result = client.send_email(payload)
 
@@ -191,6 +209,7 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     log_stage(state)
     return state
+
 
 
 

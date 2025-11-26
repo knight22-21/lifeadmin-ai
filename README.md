@@ -188,7 +188,7 @@ Once deployed, your application will be accessible through the link provided by 
 [**Visit your deployed app here**](https://lifeadmin-ai.onrender.com)
 
 ---
-
+ 
 
 ## Dependencies
 

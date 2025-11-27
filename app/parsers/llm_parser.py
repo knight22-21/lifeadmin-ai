@@ -5,7 +5,7 @@ import json
 
 client = Groq(api_key=settings.GROQ_API_KEY)
 
-# SYSTEM PROMPT: Update to include more task types like `notification`, `subscription_screenshot`, etc.
+# SYSTEM PROMPT
 SYSTEM_PROMPT = """
 You are LifeAdmin AI, a document understanding and automation assistant.
 Your job is to extract task-related information from noisy OCR text and compute missing values.
@@ -109,13 +109,12 @@ OCR TEXT:
         content = response.choices[0].message.content.strip()
         data = json.loads(content)
 
-        # Ensure that the task_type is one of the valid options (invoice, receipt, etc.)
         if data.get("task_type") not in ["invoice", "receipt", "bill", "subscription", "other"]:
-            data["task_type"] = "other"  # Default to "other" if unrecognized task type
-
+            data["task_type"] = "other"  
+            
         # Return the structured result
         return ParsedTask(
-            task_type=data.get("task_type"),  # Now guarantees a non-null value and valid task type
+            task_type=data.get("task_type"),  
             amount=data.get("amount"),
             due_date=data.get("due_date"),
             provider=data.get("provider"),

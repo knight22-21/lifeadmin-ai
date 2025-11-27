@@ -11,18 +11,12 @@ from app.integrations.sendgrid_client import SendGridClient
 from app.schemas.email import EmailPayload
 from app.parsers.groq_generate import generate_email_with_groq
 
-
-# Logging imports
 from app.integrations.supabase_logger import SupabaseLogger
 from app.schemas.log import LogEntry
 
 
-# ==============================================================
-# Helper: Log state to Supabase
-# ==============================================================
-
 def log_stage(state: Dict[str, Any]):
-    """Helper to log any pipeline stage to Supabase."""
+    """Log any pipeline stage to Supabase."""
     entry = LogEntry(
         stage=state.get("stage"),
         input_data=state.get("input"),
@@ -32,19 +26,12 @@ def log_stage(state: Dict[str, Any]):
     SupabaseLogger.log(entry)
 
 
-
-# ==============================================================
-# NODES WITH BUILT-IN LOGGING
-# ==============================================================
-
 def input_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "input"
     state["input"] = {"image": state.get("image")}
     state["output"] = {"received": True}
-
     log_stage(state)
     return state
-
 
 
 def ocr_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -53,7 +40,6 @@ def ocr_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     try:
         extracted_text = extract_text_from_file(state["image"])
-
         try:
             ocr_text = json.loads(extracted_text)
         except Exception:
@@ -67,7 +53,6 @@ def ocr_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     log_stage(state)
     return state
-
 
 
 def parse_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -86,18 +71,11 @@ def parse_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
-
 def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
-    print("\n==============================")
-    print("🧪 DEBUG — DECISION NODE INPUT")
-    print("Keys:", list(state.keys()))
-    print("State:", state)
-    print("==============================\n")
-
     state["stage"] = "decision"
 
     if "parsed" not in state:
-        state["error"] = "❌ ERROR: parsed data missing — parse_node did not produce output."
+        state["error"] = "parsed data missing"
         state["output"] = None
         log_stage(state)
         return state
@@ -107,16 +85,11 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
     try:
         next_action = "NONE"
 
-        # Decision based on task_type
         if parsed.task_type in ["invoice", "bill"]:
             next_action = "TASK"
-        
+
         elif parsed.task_type == "subscription":
             next_action = "TASK"
-
-        # Set next_action for subscription_screenshot with reminder_days_before
-        #if parsed.task_type == "subscription" and parsed.reminder_days_before:
-         #   next_action = "EMAIL"
 
         if parsed.task_type == "receipt":
             next_action = "NONE"
@@ -131,9 +104,8 @@ def decision_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
-
-
 todoist = TodoistClient()
+
 
 def task_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "todoist_action"
@@ -166,38 +138,31 @@ def task_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
-
 def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "email_action"
     parsed = state["parsed"]
 
     try:
-        # Default email if not provided
         if not parsed.email:
             parsed.email = "americaitalybelgium111@gmail.com"
 
-        # Build context from the entire state
         context = {
             "ocr_text": state.get("ocr_text"),
             "parsed": parsed.dict(),
             "previous_state": {k: v for k, v in state.items() if k not in ["ocr_text", "parsed"]}
         }
 
-        # Generate email content using Groq LLM (get subject and body in JSON)
         email_content = generate_email_with_groq(context)
 
-        # Extract subject and body
         subject = email_content.get("subject", "No Subject")
         body = email_content.get("body", "There was an issue generating the body.")
 
-        # Construct the email payload
         payload = EmailPayload(
             to=parsed.email,
             subject=subject,
             body=body
         )
 
-        # Send email via SendGrid
         client = SendGridClient()
         result = client.send_email(payload)
 
@@ -211,21 +176,12 @@ def email_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return state
 
 
-
-
 def push_action_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "push_action"
-    # Push notifications are disabled, so just log and continue
     state["output"] = {"push_sent": False, "message": "Push notifications disabled"}
     log_stage(state)
     return state
 
-
-
-
-# ==============================================================
-# FINAL LOG NODE — unchanged
-# ==============================================================
 
 def log_node(state: Dict[str, Any]) -> Dict[str, Any]:
     state["stage"] = "log"

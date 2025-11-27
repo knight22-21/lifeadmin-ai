@@ -10,7 +10,6 @@ def generate_email_with_groq(context: dict) -> dict:
     context: a dictionary that contains parsed OCR, previous states, etc.
     """
     
-    # Define the prompt for Groq to generate subject and body without markdown
     prompt = f"""
     You are LifeAdmin AI. Please generate the following in JSON format (no markdown, asterisks, or hashes):
     - 'subject' (A clear, concise subject line for the email and should contain at least 'LifeAdmin AI')
@@ -40,13 +39,12 @@ def generate_email_with_groq(context: dict) -> dict:
                 "Authorization": f"Bearer {GROQ_API_KEY}"
             },
             json={
-                "model": "llama-3.1-8b-instant",  # Using the free LLM model
+                "model": "llama-3.1-8b-instant",  
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.7
             }
         )
 
-        # Check if the response status code is successful (200)
         if response.status_code != 200:
             return {"subject": "Error", "body": "Failed to generate email content. Please try again later."}
         
@@ -62,7 +60,7 @@ def generate_email_with_groq(context: dict) -> dict:
         # Attempt to parse the result as JSON
         try:
             result_json = json.loads(result)
-            return result_json  # Will return a dictionary with 'subject' and 'body'
+            return result_json 
         except json.JSONDecodeError:
             return {"subject": "Error", "body": "Failed to decode response from Groq."}
 

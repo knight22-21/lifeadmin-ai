@@ -8,7 +8,7 @@ class SupabaseLogger:
     def log(entry: LogEntry):
         data = entry.dict()
 
-        # FIX: convert datetime → ISO string
+        
         if "timestamp" in data:
             data["timestamp"] = data["timestamp"].isoformat()
 
